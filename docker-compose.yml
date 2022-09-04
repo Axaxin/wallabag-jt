@@ -29,6 +29,8 @@ services:
     depends_on:
       - wb_db
       - wb_redis
+    networks:
+      - bag.io
       
   wb_db:
     image: mariadb
@@ -41,6 +43,8 @@ services:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       interval: 20s
       timeout: 3s
+    networks:
+      - bag.io
       
   wb_redis:
     image: redis:alpine
@@ -49,3 +53,9 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 20s
       timeout: 3s
+    networks:
+      - bag.io
+      
+networks:
+  bag.io:
+    driver: bridge

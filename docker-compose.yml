@@ -1,0 +1,51 @@
+version: '3'
+services:
+  wallabag_app:
+    image: wallabag/wallabag
+    container_name: wallabag
+    environment:
+      - MYSQL_ROOT_PASSWORD=wallaroot
+      - SYMFONY__ENV__DATABASE_DRIVER=pdo_mysql
+      - SYMFONY__ENV__DATABASE_HOST=wb_db
+      - SYMFONY__ENV__DATABASE_PORT=3306
+      - SYMFONY__ENV__DATABASE_NAME=wallabag
+      - SYMFONY__ENV__DATABASE_USER=wallabag
+      - SYMFONY__ENV__DATABASE_PASSWORD=wallapass
+      - SYMFONY__ENV__DATABASE_CHARSET=utf8mb4
+      - SYMFONY__ENV__MAILER_HOST=127.0.0.1
+      - SYMFONY__ENV__MAILER_USER=~
+      - SYMFONY__ENV__MAILER_PASSWORD=~
+      - SYMFONY__ENV__FROM_EMAIL=${WALLABAG_EMAIL:-example@abc.com}   # 修改成你自己的邮箱
+      - SYMFONY__ENV__DOMAIN_NAME=https://${WALLABAG_HOSTNAME:-localhost}  # 修改成稍后要反向代理的域名
+      - SYMFONY__ENV__SERVER_NAME="Roy's Wallabag"
+    #ports:
+     # - 8080:80   # 8080可以修改成其他的自己想用的端口
+    volumes:
+      - ./wallabag/images:/var/www/wallabag/web/assets/images  # 将图片映射挂载到本地，这样docker停止了，数据不会丢失
+    healthcheck:
+      test: ["CMD", "wget" ,"--no-verbose", "--tries=1", "--spider", "http://localhost"]
+      interval: 1m
+      timeout: 3s
+    depends_on:
+      - wb_db
+      - wb_redis
+      
+  wb_db:
+    image: mariadb
+    container_name: wb_mariadb
+    environment:
+      - MYSQL_ROOT_PASSWORD=wallaroot
+    volumes:
+      - ./wallabag/data:/var/lib/mysql  # 将数据映射挂载到本地，这样docker停止了，数据不会丢失
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 20s
+      timeout: 3s
+      
+  wb_redis:
+    image: redis:alpine
+    container_name: wb_redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 20s
+      timeout: 3s

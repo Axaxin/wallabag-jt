@@ -33,12 +33,16 @@ services:
       - bag.io
       
   wb_db:
-    image: mariadb
+    image: mariadb:10.8.2
     container_name: wb_mariadb
     environment:
       - MYSQL_ROOT_PASSWORD=wallaroot
     volumes:
       - ./wallabag/data:/var/lib/mysql  # 将数据映射挂载到本地，这样docker停止了，数据不会丢失
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 20s
+      timeout: 3s
     networks:
       - bag.io
       
